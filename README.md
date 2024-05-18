@@ -10,7 +10,7 @@ gem install blackstack-warehouse
 
 ## 2. Getting Started
 
-Use [BlackStack DB](https://github.com/leandrosardi/blackstack-db) to connect your database.
+Use [BlackStack DB](https://github.com/leandrosardi/blackstack-db) to setup your database connection.
 
 ```ruby
 BlackStack::PostgreSQL::set_db_params({
@@ -20,6 +20,12 @@ BlackStack::PostgreSQL::set_db_params({
   :db_user => 'blackstack',
   :db_password => 'SantaClara123',
 })
+```
+
+Connect the database too.
+
+```ruby
+DB = BlackStack::PostgreSQL::connect
 ```
 
 Use [BlackStack WareHouse]() for automatically: 
