@@ -1,7 +1,9 @@
+# Initialization: Create and seed a new table.
+
 require 'blackstack-db'
 require 'simple_cloud_logging'
 
-l = BlackStack::LocalLogger.new('./example.log')
+l = BlackStack::LocalLogger.new('./init.log')
 drop_table_if_exists = false
 
 l.logs 'Setup database connection... '
