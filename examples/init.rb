@@ -1,31 +1,14 @@
 # Initialization: Create and seed a new table.
 
-require 'blackstack-db'
-require 'simple_cloud_logging'
+require 'blackstack-warehouse'
+require 'config'
 
 l = BlackStack::LocalLogger.new('./init.log')
-drop_table_if_exists = false
-
-l.logs 'Setup database connection... '
-BlackStack::PostgreSQL::set_db_params({
-  :db_url => '127.0.0.1',
-  :db_port => 5432,
-  :db_name => 'demo',
-  :db_user => 'blackstack',
-  :db_password => 'SantaClara123',
-})
-l.logf 'done'.green
-
-l.logs 'Connecting the database... '
-DB = BlackStack::PostgreSQL::connect
-l.logf 'done'.green
 
 l.logs 'Creating table... '
-if DB.table_exists?(:post) && !drop_table_if_exists
+if DB.table_exists?(:post)
     l.logf 'already exists'.yellow
 else
-    DB.drop_table(:post) if drop_table_if_exists
-
     DB.create_table :post do
         column :id, :uuid, :primary_key => true
         column :create_time, :timestamp, :required => true

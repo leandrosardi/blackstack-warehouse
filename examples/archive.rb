@@ -5,8 +5,10 @@ require 'config'
 
 l = BlackStack::LocalLogger.new('./archive.log')
 
-BlackStack::Warehouse.create(
+BlackStack::Warehouse.archive(
     origin: :post,
+    age_to_archive: 1,
+    age_units: :hours,
     logger: l,
 )
 
