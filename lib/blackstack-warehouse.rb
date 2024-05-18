@@ -5,6 +5,7 @@ require 'pry'
 module BlackStack
     class Warehouse
         AGE_UNITS = [:minutes, :hours, :days, :weeks, :months, :years]
+        @@tables = []
 
         def self.create(
             origin: , # table name from where I will get the database
@@ -169,6 +170,114 @@ module BlackStack
             }
         end # def self.drain
 
+        # Delete data from the archive permanently.
+        # Parameters:
+        # - origin: Symbol. Name of the table to take data from. Example: :post. Mandatory.
+        # - archive: Symbol. Name of the table to store the data. Example: :post_archive. Default: "#{origin.to_s}_archive".
+        # - primary_key: Array of Symbols. Columns of the primary key. Example: [:id]. Default: [:id].
+        # - age_field: Symbol. Column to use to calculate the age of the record. Example: :create_time. Default: :create_time.
+        # - age_to_drain: Integer. Example: 90 (days). 0 means never drain.
+        # - age_units: Symbol. :minutes, :hours, :days, :weeks, :months or :years. Default: :hours.
+        # - batch_size: Integer. Number of records to move in each batch. Default: 1000.
+        # 
+        def self.set_one_table(
+            origin: ,
+            archive: nil,
+            primary_key: :id,
+            age_field: :create_time,
+            age_to_archive: 1,
+            age_to_drain: 90,
+            age_units: :hours, 
+            batch_size: 1000
+        )
+            archive ||= "#{origin.to_s}_archive".to_sym
+            err = []
+binding.pry
+            err << 'origin must be a symbol' unless origin.is_a? Symbol
+            err << 'archive must be a symbol' unless archive.is_a? Symbol
+            err << 'primary_key must be a symbol' unless primary_key.is_a? Symbol
+            err << 'age_field must be a symbol' unless age_field.is_a? Symbol
+            err << 'age_to_drain must be an integer' unless age_to_drain.is_a? Integer
+            err << 'age_to_drain must be greater than or equal to 0' unless age_to_drain >= 0
+            err << 'age_to_archive must be an integer' unless age_to_archive.is_a? Integer
+            err << 'age_to_archive must be greater than or equal to 0' unless age_to_archive >= 0
+            err << "age_units must be #{AGE_UNITS.join(', ')}" unless AGE_UNITS.include? age_units
+            err << 'batch_size must be an integer' unless batch_size.is_a? Integer
+            err << 'batch_size must be greater than 0' unless batch_size > 0
+
+            raise err.join("\n") unless err.empty?
+
+            h = @@tables.find { |t| t[:origin] == origin }
+            if h.nil?
+                h = {
+                    origin: origin,
+                    archive: archive,
+                    primary_key: primary_key,
+                    age_field: age_field,
+                    age_to_archive: age_to_archive,
+                    age_to_drain: age_to_drain,
+                    age_units: age_units,
+                    batch_size: batch_size
+                }
+                @@tables << h
+            else
+                h[:archive] = archive
+                h[:primary_key] = primary_key
+                h[:age_field] = age_field
+                h[:age_to_archive] = age_to_archive
+                h[:age_to_drain] = age_to_drain
+                h[:age_units] = age_units
+                h[:batch_size] = batch_size
+            end
+        end # def self.set_one_table
+
+        # set a list of tables to archive and drain.
+        def self.set(arr)
+            raise "Argument must be an array of hashes" unless arr.is_a? Array
+            raise "Argument must be an array of hashes" unless arr.all? { |e| e.is_a? Hash }
+            arr.each { |h|
+                self.set_one_table(
+                    origin: h[:origin],
+                    archive: h[:archive],
+                    primary_key: h[:primary_key],
+                    age_field: h[:age_field],
+                    age_to_archive: h[:age_to_archive],
+                    age_to_drain: h[:age_to_drain],
+                    age_units: h[:age_units],
+                    batch_size: h[:batch_size]
+                )
+            }
+        end # def self.set
+
+        def self.archive_all(logger:nil)
+            @@tables.each { |h|
+                self.archive(
+                    origin: h[:origin],
+                    archive: h[:archive],
+                    primary_key: h[:primary_key],
+                    age_field: h[:age_field],
+                    age_to_archive: h[:age_to_archive],
+                    age_units: h[:age_units],
+                    batch_size: h[:batch_size],
+                    logger: logger
+                )
+            }
+        end # def self.archive_all
+
+        def self.drain_all(logger:nil)
+            @@tables.each { |h|
+                self.drain(
+                    origin: h[:origin],
+                    archive: h[:archive],
+                    primary_key: h[:primary_key],
+                    age_field: h[:age_field],
+                    age_to_drain: h[:age_to_drain],
+                    age_units: h[:age_units],
+                    batch_size: h[:batch_size],
+                    logger: logger
+                )
+            }
+        end # def self.drain_all
 
     end # class Warehouse
 end # module BlackStack
