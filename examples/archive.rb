@@ -2,6 +2,44 @@
 
 require 'blackstack-db'
 require 'simple_cloud_logging'
+require 'pry'
+
+module BlackStack
+    module Warehouse
+        def self.create(
+            origin: , # table name from where I will get the database
+            archive: nil, # table name where I will store the database 
+            logger: nil
+        )
+            archive ||= "#{origin.to_s}_archive"
+            l = logger || BlackStack::DummyLogger.new(nil)
+            
+            l.logs 'Creating archivement table... '
+            if DB.table_exists?(archive)
+                l.logf 'already exists'.yellow
+            else
+                DB.create_table archive.to_sym  
+                l.logf 'done'.green
+            end
+            
+            l.logs 'Adding columns... '
+            DB.schema(origin.to_sym).each { |k, col|
+                l.logs "Adding column: #{k.to_s.blue}... "
+                begin
+                    DB.alter_table archive.to_sym do
+                        add_column k, col[:db_type]
+                    end
+                    l.logf 'done'.green
+                rescue => e
+                    l.logf 'skipped'.yellow #+ " (error: #{e.message})"
+                end
+            }
+            l.logf 'done'.green
+
+        end # def self.create
+    end # module Warehouse
+end # module BlackStack
+
 
 l = BlackStack::LocalLogger.new('./archive.log')
 
@@ -19,18 +57,9 @@ l.logs 'Connecting the database... '
 DB = BlackStack::PostgreSQL::connect
 l.logf 'done'.green
 
-l.logs 'Creating archivement table... '
-new_table_name = 'post_archive'
-DB.create_table new_table_name.to_sym if !DB.table_exists?(new_table_name.to_sym) 
-l.logf 'done'.green
+BlackStack::Warehouse.create(
+    origin: :post,
+    logger: l,
+)
 
-l.logs 'Adding columns... '
-DB.schema(:post).each { |k, col|
-    puts k.to_s
-    puts col.to_s
 
-    DB.alter_table :post_archive do
-        add_column k, col[:db_type]
-    end
-}
-l.logf 'done'.green
