@@ -44,7 +44,6 @@ module BlackStack
         # - primary_key: Array of Symbols. Columns of the primary key. Example: [:id]. Default: [:id].
         # - age_field: Symbol. Column to use to calculate the age of the record. Example: :create_time. Default: :create_time.
         # - age_to_archive: Integer. Example: 1 (days). 0 means never archive.
-        # - age_to_drain: Integer. Example: 90 (days). 0 means never drain.
         # - age_units: Symbol. :minutes, :hours, :days, :weeks, :months or :years. Default: :hours.
         # - batch_size: Integer. Number of records to move in each batch. Default: 1000.
         # 
@@ -54,7 +53,6 @@ module BlackStack
             primary_key: :id,
             age_field: :create_time,
             age_to_archive: 1, 
-            age_to_drain: 90,
             age_units: :hours, 
             batch_size: 1000,
             logger: nil
@@ -68,9 +66,7 @@ module BlackStack
             err << 'primary_key must be a symbol' unless primary_key.is_a? Symbol
             err << 'age_field must be a symbol' unless age_field.is_a? Symbol
             err << 'age_to_archive must be an integer' unless age_to_archive.is_a? Integer
-            err << 'age_to_drain must be an integer' unless age_to_drain.is_a? Integer
             err << 'age_to_archive must be greater than or equal to 0' unless age_to_archive >= 0
-            err << 'age_to_drain must be greater than or equal to 0' unless age_to_drain >= 0
             err << "age_units must be #{AGE_UNITS.join(', ')}" unless AGE_UNITS.include? age_units
             err << 'batch_size must be an integer' unless batch_size.is_a? Integer
             err << 'batch_size must be greater than 0' unless batch_size > 0
@@ -117,6 +113,62 @@ module BlackStack
                 l.logf 'done'.green
             }
         end # def self.archive
+
+        # Delete data from the archive permanently.
+        # Parameters:
+        # - origin: Symbol. Name of the table to take data from. Example: :post. Mandatory.
+        # - archive: Symbol. Name of the table to store the data. Example: :post_archive. Default: "#{origin.to_s}_archive".
+        # - primary_key: Array of Symbols. Columns of the primary key. Example: [:id]. Default: [:id].
+        # - age_field: Symbol. Column to use to calculate the age of the record. Example: :create_time. Default: :create_time.
+        # - age_to_drain: Integer. Example: 90 (days). 0 means never drain.
+        # - age_units: Symbol. :minutes, :hours, :days, :weeks, :months or :years. Default: :hours.
+        # - batch_size: Integer. Number of records to move in each batch. Default: 1000.
+        # 
+        def self.drain(
+            origin: ,
+            archive: nil,
+            primary_key: :id,
+            age_field: :create_time,
+            age_to_drain: 90,
+            age_units: :hours, 
+            batch_size: 1000,
+            logger: nil
+        )
+            l = logger || BlackStack::DummyLogger.new(nil)
+            archive ||= "#{origin.to_s}_archive".to_sym
+            err = []
+
+            err << 'origin must be a symbol' unless origin.is_a? Symbol
+            err << 'archive must be a symbol' unless archive.is_a? Symbol
+            err << 'primary_key must be a symbol' unless primary_key.is_a? Symbol
+            err << 'age_field must be a symbol' unless age_field.is_a? Symbol
+            err << 'age_to_drain must be an integer' unless age_to_drain.is_a? Integer
+            err << 'age_to_drain must be greater than or equal to 0' unless age_to_drain >= 0
+            err << "age_units must be #{AGE_UNITS.join(', ')}" unless AGE_UNITS.include? age_units
+            err << 'batch_size must be an integer' unless batch_size.is_a? Integer
+            err << 'batch_size must be greater than 0' unless batch_size > 0
+
+            raise err.join("\n") unless err.empty?
+
+            # select all records where age is greater than age_to_drain days.
+            l.logs 'Delete from the archive... '
+            records = DB[archive.to_sym].where(Sequel.lit("
+                \"#{age_field.to_s}\" < CAST('#{now}' AS TIMESTAMP) - INTERVAL '#{age_to_drain} #{age_units.to_s}'
+            "))
+            l.logf 'done'.green + "(#{records.count.to_s.blue} records)"
+
+            # split records in batches of batch_size
+            # delete records from origin table.
+            i = 0
+            batches = records.each_slice(batch_size)
+            batches.each { |batch|
+                i += 1
+                l.logs "Deleting batch #{i.to_s} from origin... "
+                DB[archive.to_sym].where(primary_key => batch.map { |r| r[primary_key] }).delete
+                l.logf 'done'.green
+            }
+        end # def self.drain
+
 
     end # class Warehouse
 end # module BlackStack
