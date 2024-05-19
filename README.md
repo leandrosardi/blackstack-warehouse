@@ -1,6 +1,6 @@
 # blackstack-warehouse
 
-Implement **data retention politics** in your SaaS, easily.
+Implement **Data Retention Terms** in your SaaS, easily.
 
 **BlackStack Warehouse** perofrms data archiving into a replicated database schema automatically.
 
