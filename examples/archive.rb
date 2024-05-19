@@ -11,7 +11,8 @@ BlackStack::Warehouse.set([{
     :age_to_drain => 90,
     :age_units => :hours,
     :logger => l,
+#}, {
+    # TODO: Add more tables here...
 }])
 
-
-
+BlackStack::Warehouse.archive_all(logger: l)

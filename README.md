@@ -34,15 +34,13 @@ Use [BlackStack WareHouse]() for automatically:
 2. move data from **original tables** to **archivement tables**.
 
 ```ruby
-wh = BlackStack::Warehouse.new(
-    :table => :event,
-    :primary_key => [:id],
-    :age_field => :create_time,
-    # Integer. Example: 1 (days). 0 means never archive.
+BlackStack::Warehouse.set([{
+    :origin => :post,
     :age_to_archive => 1,
-    # Integer. Example: 90 (days). 0 means never drain. 
-    :age_to_drain => 90, 
-)
+    :age_to_drain => 90,
+    :age_units => :hours,
+    :logger => l,
+}])
 
-wh.archive
+BlackStack::Warehouse.archive_all(logger: l)
 ```
