@@ -188,8 +188,11 @@ module BlackStack
             age_to_archive: 1,
             age_to_drain: 90,
             age_units: :hours, 
-            batch_size: 1000
+            batch_size: 1000,
+            logger: nil
         )
+            l = logger || BlackStack::DummyLogger.new(nil)
+
             archive ||= "#{origin.to_s}_archive".to_sym
             err = []
             err << 'origin must be a symbol' unless origin.is_a? Symbol
@@ -228,10 +231,16 @@ module BlackStack
                 h[:age_units] = age_units
                 h[:batch_size] = batch_size
             end
+
+            self.create(
+                origin: h[:origin],
+                archive: h[:archive] || "#{h[:origin].to_s}_archive".to_sym,
+                logger: l
+            )
         end # def self.set_one_table
 
         # set a list of tables to archive and drain.
-        def self.set(arr)
+        def self.set(arr, logger: nil)
             raise "Argument must be an array of hashes" unless arr.is_a? Array
             raise "Argument must be an array of hashes" unless arr.all? { |e| e.is_a? Hash }
             arr.each { |h|
@@ -243,7 +252,8 @@ module BlackStack
                     age_to_archive: h[:age_to_archive] || 1,
                     age_to_drain: h[:age_to_drain] || 90,
                     age_units: h[:age_units] || :hours,
-                    batch_size: h[:batch_size] || 1000
+                    batch_size: h[:batch_size] || 1000,
+                    logger: logger
                 )
             }
         end # def self.set

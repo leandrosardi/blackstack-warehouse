@@ -69,6 +69,21 @@ Create a logger to track the internal work.
 l = BlackStack::LocalLogger.new('./foo.log')
 ```
 
+**Archive Creation:**
+
+```ruby
+BlackStack::Warehouse.set([{
+    :origin => :post,
+    :primary_key => :id, 
+    :age_field => :create_time,
+    :age_to_archive => 1,
+    :age_to_drain => 90,
+    :age_units => :hours,
+#}, {
+    # TODO: Add more tables here...
+}], logger: l)
+```
+
 **Archivement:**
 
 ```ruby

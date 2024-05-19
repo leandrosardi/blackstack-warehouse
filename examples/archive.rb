@@ -14,6 +14,6 @@ BlackStack::Warehouse.set([{
     :age_units => :hours,
 #}, {
     # TODO: Add more tables here...
-}])
+}], logger: l)
 
 BlackStack::Warehouse.archive_all
