@@ -5,6 +5,5 @@ BlackStack::PostgreSQL::set_db_params({
   :db_user => 'blackstack',
   :db_password => '<your database password>',
 })
-l.logf 'done'.green
 
 DB = BlackStack::PostgreSQL::connect
