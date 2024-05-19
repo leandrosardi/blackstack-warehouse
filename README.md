@@ -86,7 +86,7 @@ BlackStack::Warehouse.drain_all(logger: l)
 | Name           | Type    | Description                                                                       | Default Value                      |
 |----------------|---------|-----------------------------------------------------------------------------------|------------------------------------|
 | origin         | Symbol  | Name of the table to take data from.                                              | Mandatory.                         |
-| archive        | Symbol  | Name of the table to store the data.                                              | Default: "#{origin.to_s}_archive". |
+| archive        | Symbol  | Name of the table to store the archived data.                                              | Default: "#{origin.to_s}_archive". |
 | primary_key    | Symbol  | Name of the primary key column.                                                   | Default: [:id].                    |
 | age_field      | Symbol  | Column to use to calculate the age of the record.                                 | Default: :create_time.             |
 | age_to_archive | Integer | Number of hours, days, weeks, months or years to wait a record before archive it. | Default: 1.                        |
