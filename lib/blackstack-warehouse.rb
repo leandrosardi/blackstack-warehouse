@@ -1,6 +1,5 @@
 require 'blackstack-db'
 require 'simple_cloud_logging'
-require 'pry'
 
 module BlackStack
     class Warehouse
