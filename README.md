@@ -65,7 +65,7 @@ BlackStack::Warehouse.drain_all
 
 ## 2. Logging
 
-Create a logger to track the internal work.
+Use [BlackStack Simple Cloud Logging](https://github.com/leandrosardi/simple_cloud_logging) to track the internal work.
 
 ```ruby
 l = BlackStack::LocalLogger.new('./foo.log')
