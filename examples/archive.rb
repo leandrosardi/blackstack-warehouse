@@ -7,12 +7,13 @@ l = BlackStack::LocalLogger.new('./archive.log')
 
 BlackStack::Warehouse.set([{
     :origin => :post,
+    :primary_key => :id, 
+    :age_field => :create_time,
     :age_to_archive => 1,
     :age_to_drain => 90,
     :age_units => :hours,
-    :logger => l,
 #}, {
     # TODO: Add more tables here...
 }])
 
-BlackStack::Warehouse.archive_all(logger: l)
+BlackStack::Warehouse.archive_all
