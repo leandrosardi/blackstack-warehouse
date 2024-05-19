@@ -20,7 +20,7 @@ BlackStack::PostgreSQL::set_db_params({
   :db_port => 5432,
   :db_name => 'demo',
   :db_user => 'blackstack',
-  :db_password => 'SantaClara123',
+  :db_password => '<your database password here>',
 })
 ```
 
