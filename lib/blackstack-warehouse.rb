@@ -192,7 +192,6 @@ module BlackStack
         )
             archive ||= "#{origin.to_s}_archive".to_sym
             err = []
-binding.pry
             err << 'origin must be a symbol' unless origin.is_a? Symbol
             err << 'archive must be a symbol' unless archive.is_a? Symbol
             err << 'primary_key must be a symbol' unless primary_key.is_a? Symbol
@@ -238,13 +237,13 @@ binding.pry
             arr.each { |h|
                 self.set_one_table(
                     origin: h[:origin],
-                    archive: h[:archive],
-                    primary_key: h[:primary_key],
-                    age_field: h[:age_field],
-                    age_to_archive: h[:age_to_archive],
-                    age_to_drain: h[:age_to_drain],
-                    age_units: h[:age_units],
-                    batch_size: h[:batch_size]
+                    archive: h[:archive] || "#{h[:origin].to_s}_archive".to_sym,
+                    primary_key: h[:primary_key] || :id,
+                    age_field: h[:age_field] || :create_time,
+                    age_to_archive: h[:age_to_archive] || 1,
+                    age_to_drain: h[:age_to_drain] || 90,
+                    age_units: h[:age_units] || :hours,
+                    batch_size: h[:batch_size] || 1000
                 )
             }
         end # def self.set
@@ -253,12 +252,12 @@ binding.pry
             @@tables.each { |h|
                 self.archive(
                     origin: h[:origin],
-                    archive: h[:archive],
-                    primary_key: h[:primary_key],
-                    age_field: h[:age_field],
-                    age_to_archive: h[:age_to_archive],
-                    age_units: h[:age_units],
-                    batch_size: h[:batch_size],
+                    archive: h[:archive] || "#{h[:origin].to_s}_archive".to_sym,
+                    primary_key: h[:primary_key] || :id,
+                    age_field: h[:age_field] || :create_time,
+                    age_to_archive: h[:age_to_archive] || 1,
+                    age_units: h[:age_units] || :hours,
+                    batch_size: h[:batch_size] || 1000,
                     logger: logger
                 )
             }
@@ -268,12 +267,12 @@ binding.pry
             @@tables.each { |h|
                 self.drain(
                     origin: h[:origin],
-                    archive: h[:archive],
-                    primary_key: h[:primary_key],
-                    age_field: h[:age_field],
-                    age_to_drain: h[:age_to_drain],
-                    age_units: h[:age_units],
-                    batch_size: h[:batch_size],
+                    archive: h[:archive] || "#{h[:origin].to_s}_archive".to_sym,
+                    primary_key: h[:primary_key] || :id,
+                    age_field: h[:age_field] || :create_time,
+                    age_to_drain: h[:age_to_drain] || 90,
+                    age_units: h[:age_units] || :hours,
+                    batch_size: h[:batch_size] || 1000,
                     logger: logger
                 )
             }
