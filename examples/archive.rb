@@ -16,4 +16,4 @@ BlackStack::Warehouse.set([{
     # TODO: Add more tables here...
 }], logger: l)
 
-BlackStack::Warehouse.archive_all
+BlackStack::Warehouse.archive_all(logger: l)
